@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  # -------------------
+  # Python 后端服务
+  # -------------------
+  app-backend:
+    image: ghcr.io/o0pk2008/app-backend:20260203-v2
+    container_name: app-backend
+    env_file:
+      - .env
+    volumes:
+      - ./config/config.toml:/source/app-backend/config.toml:ro
+    working_dir: /source/app-backend
+    command: python3 main.pyc
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+  
+  # -------------------
+  # Python 计算节点后端服务
+  # -------------------
+  node-manager:
+    image: ghcr.io/o0pk2008/node-manager:20260203-v2
+    container_name: node-manager
+    env_file:
+      - .env
+    volumes:
+      - ./config/node-manager.toml:/source/node-manager/node-manager.toml:ro
+    working_dir: /source/node-manager
+    command: python3 run.pyc
+    restart: unless-stopped
+    ports:
+      - "5200:5200"
+    depends_on:
+      - postgres
+
+  # -------------------
+  # PostgreSQL 数据库
+  # -------------------
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql
+      - ./initdb:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+
+  # -------------------
+  # Nginx + SSL (反向代理)
+  # -------------------
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    volumes:
+      # 打包好的前端页面挂载到 nginx 默认根目录
+      - ./nodejs:/usr/share/nginx/html:ro
+      # 自定义 nginx 配置（conf.d 目录）
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      # SSL 证书挂载（启用 HTTPS 时取消注释）
+      # - ./nginx/certs:/etc/nginx/certs:ro
+    ports:
+      - "80:80"
+      # - "443:443"
+    restart: unless-stopped

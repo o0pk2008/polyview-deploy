@@ -1,0 +1,57 @@
+title = "Server Config"
+
+[servers]
+
+[servers.upload_folder]
+http = "/uploads"
+
+[servers.updata_url]
+http = "https://d33ku0tg16d98p.cloudfront.net/"
+
+[servers.edit_url]
+# 若 edit 服务在 compose 中，改为 http://edit服务名:5100/
+http = "http://host.docker.internal:5100/"
+
+[servers.home_port]
+port = 5000
+
+[servers.database]
+# SQLite 数据库路径（当 DATABASE_URL 未设置时使用）
+path = "db/Data.db"
+# PostgreSQL 数据库 URL（可选，优先级高于 path）
+# 格式: postgresql://user:password@host:port/database
+# 或: postgresql+psycopg://user:password@host:port/database
+# Docker 内部使用服务名 postgres 连接
+url = "postgresql://postgres:Polyview%402026@postgres:5432/polyview_client"
+
+[servers.task_serve]
+# 若 task 服务在 compose 中，改为 http://task服务名:5200/
+http = "http://host.docker.internal:5200/"
+
+[servers.clientIP]
+# http = "https://polyview.ngrok.app/"
+# 本地访问用 localhost，生产环境改为实际域名
+http = "http://localhost/"
+
+[supabase]
+url = "https://qybcamdlzxycztjrzyao.supabase.co"
+anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5YmNhbWRsenh5Y3p0anJ6eWFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyNDExNjksImV4cCI6MjA1MTgxNzE2OX0.M7WMh9FHN2TRXmb777hBt-kw65OKUxwl7pB0aSEDzzI"
+service_role_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5YmNhbWRsenh5Y3p0anJ6eWFvIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNjI0MTE2OSwiZXhwIjoyMDUxODE3MTY5fQ.UUPIaVxv8WjgScUZ6H5ROyAUdZw5A7EYrjt94ZrKrkk"
+redirect_url = "https://polyview.ngrok.app/loginPage"
+reset_password_redirect_url = "https://polyview.ngrok.app/resetPasswordPage"
+
+[amplitude]
+amplitude_app_prod_api_key = "3595d45582052c67ef4b424af761e881"
+amplitude_web_prod_api_key = "b3bcfea66a499c9975423e55b76db8ef"
+amplitude_test_api_key = "a0ade4e73cf0e5c79b3edbfa4976950f"
+
+[mail]
+noreply_mail_account = "polyview.noreply@vizzio.ai"
+
+[iap]
+apple_production_url = "https://buy.itunes.apple.com/verifyReceipt"
+apple_sandbox_url = "https://sandbox.itunes.apple.com/verifyReceipt"
+apple_shared_secret= "e6fe2bcb20694d3f8c2ab8c4aa6ee62e"
+
+[jwt]
+secret_key = "a1d270852266fc671bf7cc72a6f4a3eb53f20517515afad15e3f990ee3461a0c"

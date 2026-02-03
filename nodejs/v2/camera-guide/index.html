@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+    <title>POLYVIEW | Capture Instructions</title>
+    <style>
+        html,body, div, video {
+            margin: 0;
+            padding: 0;
+        }
+        html,body {
+            height: 100vh;
+            background: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC",
+            "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            overflow: hidden;
+        }
+        .guide-box {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .guide-box__hd {
+            flex-shrink: 0;
+            width: 100%;
+            height: 58%;
+            overflow: hidden;
+            border-radius: 6px;
+            background: black;
+        }
+        .guide-box__video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .guide-box__bd {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .guide-box__text {
+            font-size: 14px;
+            font-weight: 400;
+        }
+        /* 骨架屏样式 */
+        .skeleton {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 12px;
+        }
+        .skeleton-item {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+        }
+        .skeleton-item:nth-child(1) {
+            width: 90%;
+        }
+        .skeleton-item:nth-child(2) {
+            width: 60%;
+        }
+        .skeleton-item:nth-child(3) {
+            width: 85%;
+        }
+        .skeleton-item:nth-child(4) {
+            width: 70%;
+        }
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        /* 隐藏骨架屏 */
+        .skeleton.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-box">
+        <div class="debug"></div>
+        <div class="guide-box__hd">
+            <video 
+                class="guide-box__video" 
+                playsinline
+                webkit-playsinline
+                muted
+                autoplay
+                loop
+                preload="auto"
+                x5-playsinline
+                x5-video-player-type="h5"
+            >
+                <!-- 视频源保持 https， ios webview 会阻止 http 视频源播放 -->
+                <source src="https://polyviewapp.s3.ap-southeast-1.amazonaws.com/static/assets/media/PolyView-Help_compress.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="guide-box__bd">
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+        </div>
+    </div>
+
+    <script>
+        const i18nText = {
+            'zh': [
+                '选择一个有很多细节的物体',
+                '围绕物体拍照',
+                '涵盖所有的角度和高度',
+                '拍照时不要移动物体',
+            ],
+            'en': [
+                'Choose an object with many details',
+                'Take photos circing around the object',
+                'Covering all angles and heights',
+                'Do not move the object during photo-taking',
+            ]
+        }
+
+        let lang = 'en';
+        let langReceived = false; // 标识是否已经接收到语言设置
+
+        const dom = (selector) => document.querySelector(selector);
+        
+        const guideContent = dom('.guide-box__bd');
+
+        const setGuideText = (text) => {
+            guideContent.innerHTML = text.map((item, index) => {
+                return `<div class="guide-box__text">${index+1}. ${item}</div>`
+            }).join('');
+        }
+        
+        // 接受 app 发来的语言设置
+        window.addEventListener('message', (e) => {
+            // 兼容 app(传递字符串) 和 iframe（传递对象）
+            const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+
+            if (data.type === 'SET_LANG') {
+                langReceived = true;
+                lang = data.payload.lang;
+                setGuideText(i18nText[lang]);
+            }
+        })
+
+        // ⏱️ 设定 fallback 超时（2秒后回退为英文）
+        setTimeout(() => {
+            if (!langReceived) {
+                console.warn('No lang received, fallback to English');
+                setGuideText(i18nText[lang]);
+            }
+        }, 2000);
+
+    </script>
+</body>
+</html>

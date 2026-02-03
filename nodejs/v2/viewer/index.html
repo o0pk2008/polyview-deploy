@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SuperSplat</title>
+        <meta charset="utf-8" />
+        <base href="">
+        <!-- 用于将页面做成 PWA，离线访问 -->
+        <!-- <link rel="manifest" href="./manifest.json"> -->
+        <link rel="stylesheet" href="./index.css">
+        <link rel="shortcut icon" href="#">
+        <!-- <meta name="description" content="SuperSplat is an advanced browser-based editor for manipulating and optimizing 3D Gaussian Splats. It is open source and engine agnostic." /> -->
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+
+        <!-- jszip -->
+        <script src="jszip.js"></script>
+
+        <!-- Service worker -->
+        <script>
+            const sw = navigator.serviceWorker;
+            if (sw) {
+                sw.register('./sw.js')
+                    .then(reg => console.log('service worker registered', reg))
+                    .catch(err => console.log('failed to register service worker', err));
+            }
+        </script>
+    </head>
+
+    <body>
+        <script type="module" src="./index.js"></script>
+
+        <!-- PC 端 UI 界面 -->
+        <div id="pc-wrap" class="hidden">
+            <!-- 顶部EditorLOGO -->
+            <div id="EditorLOGO" class="hidden fixed justify-between top-0 w-full bg-white h-[var(--page-pc-hd-height)] px-[40px] flex items-center z-10">
+                <div class="flex items-center">
+                    <img src="./static/icons/polyview_logo.png" class="h-[34px]">
+                    <!-- <img src="./static/icons/logo_polyview.svg" class="h-[34px]">
+                    <img src="./static/icons/icon-line.svg" class="h-[28px] mx-[24px]" alt="">
+                    <img src="./static/icons/logo_editor.svg" class="h-[40px]" alt=""> -->
+                </div>
+                <div class="header-options">
+                    <!-- 重置 -->
+                    <div id="button-reset" class="header-options__btn btn-reset">
+                        <div class="header-options__btn-icon mask-icon"
+                            style="-webkit-mask-image: url(./static/icons/icon-reset.svg);mask-image: url(./static/icons/icon-reset.svg);">
+                        </div>
+                        <div class="header-options__btn-name">Reset</div>
+                        <!-- <div class="pro-badge">PRO</div> -->
+                    </div>
+                    <!-- 压缩保存 -->
+                    <div id="button-sync" class="header-options__btn btn-sync">
+                        <div class="header-options__btn-icon mask-icon"
+                            style="-webkit-mask-image: url(./static/icons/icon-sync.svg);mask-image: url(./static/icons/icon-sync.svg);">
+                        </div>
+                        <div class="header-options__btn-name">Sync</div>
+                        <!-- <div class="pro-badge">PRO</div> -->
+                    </div>
+                    <!-- 高精度保存 -->
+                    <div id="button-sync-hd" class="header-options__btn btn-hd-sync">
+                        <div class="header-options__btn-icon mask-icon"
+                            style="-webkit-mask-image: url(./static/icons/icon-sync-hd.svg);mask-image: url(./static/icons/icon-sync-hd.svg);">
+                        </div>
+                        <div class="header-options__btn-name">HD-Sync</div>
+                        <!-- <div class="pro-badge">PRO</div> -->
+                    </div>
+                </div>
+            </div>
+            <!-- 侧边栏面板 -->
+            <div class="sidebar-panel-wrap hidden">
+                <!-- 左侧主面板 -->
+                <div class="sidebar-panel shadow-lg">
+                    <!-- <div class="sidebar-panel__hd">
+                        <div class="sidebar-panel__hd--title">Edit Mode</div>
+                    </div> -->
+                    <div class="sidebar-panel__body">
+                        <!-- Selection -->
+                        <div class="sidebar-panel__unit">
+                            <div class="sidebar-panel__unit-hd">
+                                <div class="sidebar-panel__unit-iconwrap">
+                                    <img src="./static/icons/icon-selection.svg" alt="" class="sidebar-panel__unit-icon icon-selection">
+                                </div>
+                                <div class="sidebar-panel__unit-title">Selection</div>
+                            </div>
+                            <div class="sidebar-panel__unit-bd">
+                                <div id="button-rect" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-rect.svg);mask-image: url(./static/icons/icon-rect.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Rect</div>
+                                </div>
+                                <div id="button-brush" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-brush.svg);mask-image: url(./static/icons/icon-brush.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Brush</div>
+                                </div>
+                                <div id="button-polygon" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-polygon.svg);mask-image: url(./static/icons/icon-polygon.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Polygon</div>
+                                </div>
+                                <div id="button-sphere" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-sphere.svg);mask-image: url(./static/icons/icon-sphere.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Sphere</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Scene Edit -->
+                        <div class="sidebar-panel__unit">
+                            <div class="sidebar-panel__unit-hd">
+                                <div class="sidebar-panel__unit-iconwrap">
+                                    <img src="./static/icons/icon-scene_edit.svg" alt="" class="sidebar-panel__unit-icon icon-edit">
+                                </div>
+                                <div class="sidebar-panel__unit-title">Scene Edit</div>
+                            </div>
+                            <div class="sidebar-panel__unit-bd">
+                                <div id="button-origin" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-origin.svg);mask-image: url(./static/icons/icon-origin.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Origin</div>
+                                </div>
+                                <div id="button-color" class="sidebar-panel__item">
+                                    <div class="sidebar-panel__item-iconwrap">
+                                        <div class="sidebar-panel__item-icon mask-icon"
+                                            style="-webkit-mask-image: url(./static/icons/icon-color.svg);mask-image: url(./static/icons/icon-color.svg);">
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-panel__item-name">Color</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-panel__slider py-[20px] px-[20px]">
+                            <!-- 模式切换 -->
+                            <div id="mode-switch" class="mode-switch">
+                                <div id="point-mode" class="mode-switch__item is-active">
+                                    <div class="mode-switch__item-name">Point</div>
+                                </div>
+                                <div id="ring-mode" class="mode-switch__item">
+                                    <div class="mode-switch__item-name">Ring</div>
+                                </div>
+                            </div>
+                            <!-- 滑块 -->
+                            <div class="sidebar-panel__slider-bottom">
+                                <div id="panel-slider" class="sidebar-panel__slider-bar flex-1">
+                                    <input id="slider-input-range" type="range" min="0" max="10" step="0.01" value="0">
+                                </div>
+                                <div id="panel-slider-value" class="sidebar-panel__slider-r">0.00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 文件上传 -->
+                    <!-- <div id="file-upload" class="absolute left-0 right-0 bottom-0 bg-[#18181B] translate-y-[100%]">
+                        <div id="button-upload-model" class="flex items-center justify-center cursor-pointer py-4">
+                            <img class="import-model-icon w-6 h-6 mr-4" src="./static/icons/icon-import-model.svg" alt="" >
+                            <span class="text-md text-[#888]">Import Scene</span>
+                        </div>
+                        <div id="model-list" class="model-list-container"></div>
+                    </div> -->
+                </div>
+                <!-- 面板二级菜单 -->
+                <div class="sidebar-panel__second fixed left-[50%] bottom-[104px] translate-x-[-50%] z-40">
+                    <!-- second menu -->
+                    <div id="panel-menu" class="sidebar-panel__menu">
+                        <div class="sidebar-panel__menu-left cursor-move">
+                            <div id="panel-menu-icon" class="sidebar-panel__menu-icon mask-icon"
+                                style="-webkit-mask-image: url('./static/icons/icon-rect.svg');mask-image: url('./static/icons/icon-rect.svg');">
+                            </div>
+                            <div id="panel-menu-name" class="sidebar-panel__menu-name">Rect</div>
+                        </div>
+                        <div class="sidebar-panel__menu-right">
+                            <div class="sidebar-panel__menu-hd">
+                                <img src="./static/icons/icon-save.svg" alt="" class="sidebar-panel__menu-detail">
+                                <div class="sidebar-panel__menu-title">DETAL</div>
+                            </div>
+                            <div class="sidebar-panel__menu-bd">
+                                <!-- boxs plane -->
+                                <div id="boxs-plane" class="sidebar-panel__boxs plane">
+                                    <div class="sidebar-panel__box">
+                                        <span class="sidebar-panel__box-name">Y</span>
+                                    </div>
+                                    <div id="plane-input-box" class="sidebar-panel__box box-long">
+                                        <!-- <input id="menu-plane-input" type="number" class="sidebar-panel__box-input" value="0.00"> -->
+                                    </div>
+                                </div>
+                                <!-- box set / none / invert / delete -->
+                                <div id="boxs-section" class="sidebar-panel__boxs rect brush polygon">
+                                    <div id="menu-set" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-set.svg" alt="" class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Set</span>
+                                    </div>
+                                    <div id="menu-none" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-none.svg" alt=""
+                                            class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">None</span>
+                                    </div>
+                                    <div id="menu-invert" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-invert.svg" alt=""
+                                            class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Invert</span>
+                                    </div>
+                                    <div id="menu-delete" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-delete.svg" alt=""
+                                            class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Delete</span>
+                                    </div>
+                                </div>
+                                <!-- box sphere -->
+                                <div id="boxs-shpere" class="sidebar-panel__boxs sphere">
+                                    <!-- sphere set -->
+                                    <div id="menu-sphere-set" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-set.svg" alt="" class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Set</span>
+                                    </div>
+                                    <!-- sphere invert -->
+                                    <div id="menu-sphere-invert" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-invert.svg" alt=""
+                                            class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Invert</span>
+                                    </div>
+                                    <!-- sphere remove -->
+                                    <div id="menu-sphere-remove" class="sidebar-panel__box">
+                                        <img src="./static/icons/icon-delete.svg" alt=""
+                                            class="sidebar-panel__box-icon">
+                                        <span class="sidebar-panel__box-name">Delete</span>
+                                    </div>
+                                    <!-- sphere radius -->
+                                    <div id="menu-sphere-radius" class="sidebar-panel__box"></div>
+                                </div>
+                                <!-- boxs origin position-->
+                                <div id="box-position" class="sidebar-panel__boxs origin">
+                                    <div class="sidebar-panel__box box-label">
+                                        <span id="origin-position-name" class="sidebar-panel__box-name active">Position</span>
+                                    </div>
+                                    <!-- 
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">X</div>
+                                            <input id="origin-pos-x" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div>
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">Y</div>
+                                            <input id="origin-pos-y" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div>
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">Z</div>
+                                            <input id="origin-pos-z" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div> -->
+                                </div>
+                                <!-- boxs origin rotation-->
+                                <div id="box-rotation" class="sidebar-panel__boxs origin">
+                                    <div class="sidebar-panel__box box-label">
+                                        <span id="origin-rotation-name" class="sidebar-panel__box-name">Rotation</span>
+                                    </div>
+                                    <!-- 
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">X</div>
+                                            <input id="origin-rot-x" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div>
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">Y</div>
+                                            <input id="origin-rot-y" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div>
+                                        <div class="sidebar-panel__boxinput">
+                                            <div class="sidebar-panel__boxinput-key">Z</div>
+                                            <input id="origin-rot-z" type="number" class="sidebar-panel__boxinput-input" value="0.00">
+                                        </div> -->
+                                </div>
+                                <!-- boxs origin scale-->
+                                <div id="box-scale" class="sidebar-panel__boxs origin">
+                                    <div class="sidebar-panel__box box-label">
+                                        <span id="origin-scale-name" class="sidebar-panel__box-name">Scale</span>
+                                    </div>
+                                    <div id="origin-scale-box" class="sidebar-panel__box box-long">
+                                        <!-- <input id="origin-scale" type="number" class="sidebar-panel__box-input center" value="1.00"> -->
+                                    </div>
+                                </div>
+                                <!-- boxs color -->
+                                <div id="box-color" class="sidebar-panel__boxs color">
+                                    <div class="sidebar-panel__box box-label">
+                                        <span class="sidebar-panel__box-name">Color</span>
+                                    </div>
+                                    <div id="menu-color-box" class="sidebar-panel__box box-long relative">
+                                        <div id="menu-color-label"
+                                            class="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center text-white text-[15px] z-50 pointer-events-none">
+                                            #000000
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 移动端 UI 界面 -->
+        <div id="m-mobile-wrap" class="hidden">
+            <!-- 顶部状态栏 -->
+            <div id="m-header-toolbar" class="fixed top-0 left-0 right-0 flex items-center justify-between h-[50px] px-[16px] bg-white z-10 hidden">
+                <!-- 左侧 -->
+                <div class="flex items-center gap-[20px]">
+                    <!-- 返回上一页 -->
+                    <div id="m-page-back" class="flex items-center justify-center w-[24px] h-[24px]">
+                        <!-- <img class="w-[20px] h-[20px]" src="./static/icons-mobile/icon-arrow-left.svg" alt=""> -->
+                        <i class="mask-icon w-[20px] h-[20px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-arrow-left.svg); mask-image: url(./static/icons-mobile/icon-arrow-left.svg);"></i>
+                    </div>
+                    <div class="text-[16px]">Model Edit</div>
+                </div>
+                <!-- 右侧 -->
+                <div id="m-header-controls" class="flex items-center gap-[16px]">
+                    <!-- 导入 -->
+                    <!-- <div id="m-btn-import" class="flex items-center justify-center w-[30px] h-[30px]">
+                        <i class="mask-icon w-[25px] h-[25px] bg-white" style="-webkit-mask-image: url(./static/icons-mobile/icon-import.svg); mask-image: url(./static/icons-mobile/icon-import.svg);"></i>
+                    </div> -->
+                    <!-- 后退到上一步 -->
+                    <div id="m-btn-undo" class="flex items-center justify-center w-[32px] h-[42px] opacity-50 pointer-events-none">
+                        <i class="mask-icon w-[32px] h-[42px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-undo.svg); mask-image: url(./static/icons-mobile/icon-undo.svg);"></i>
+                    </div>
+                    <!-- 保存 -->
+                    <div id="m-btn-save" class="flex items-center justify-center w-[32px] h-[42px]">
+                        <i class="mask-icon w-[32px] h-[42px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-save.svg); mask-image: url(./static/icons-mobile/icon-save.svg);"></i>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- 左上角入口控件（edit， transform，ringMode） -->
+            <div id="m-entry-controls" class="fixed top-[calc(20px+var(--page-mobile-hd-height))] left-[28px] flex flex-col items-center w-[40px] z-10 hidden">
+                <!-- edit -->
+                <div id="m-btn-edit" class="flex flex-col items-center text-center opacity-50">
+                    <div class="flex items-center justify-center w-[42px] h-[42px] rounded-full bg-white">
+                        <i class="mask-icon w-[24px] h-[24px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-crop.svg); mask-image: url(./static/icons-mobile/icon-crop.svg);"></i>
+                    </div>
+                    <div class="text-white whitespace-nowrap mt-[4px]">Crop</div>
+                </div>
+                <!-- transform -->
+                <div id="m-btn-transform" class="flex flex-col items-center text-center mt-[20px] opacity-50">
+                    <div class="flex items-center justify-center w-[42px] h-[42px] rounded-full bg-white">
+                        <i class="mask-icon w-[24px] h-[24px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-transform.svg); mask-image: url(./static/icons-mobile/icon-transform.svg);"></i> 
+                    </div>
+                    <div class="text-white whitespace-nowrap mt-[4px]">Transform</div>
+                </div>
+                <!-- ring mode -->
+                <div id="m-btn-ring-mode" class="flex flex-col items-center text-center mt-[20px] opacity-50">
+                    <div class="flex items-center justify-center w-[42px] h-[42px] rounded-full bg-white">
+                        <!-- <img class="w-[30px] h-[30px]" src="./static/icons-mobile/icon-ring.svg" alt=""> -->
+                        <i class="mask-icon w-[24px] h-[24px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-ring.svg); mask-image: url(./static/icons-mobile/icon-ring.svg);"></i> 
+                    </div>
+                    <div class="text-white whitespace-nowrap mt-[4px]">Ring Mode</div>
+                </div>
+            </div>
+            
+            <!-- 上拉 sheet -->
+            <div id="m-panel-container" class="fixed left-0 bottom-0 right-0 rounded-t-[16px] bg-white pb-[24px] translate-y-[100%] z-10 hidden" style="transition: transform 0.3s;">
+                <!-- 头部操作栏 -->
+                <div class="flex items-center justify-center px-[20px]">
+                    <!-- 收起按钮 -->
+                    <!-- <div id="m-btn-sheet-down" class="flex items-center justify-center p-[5px]">
+                        <i class="mask-icon w-[24px] h-[24px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-arrow-down.svg); mask-image: url(./static/icons-mobile/icon-arrow-down.svg);"></i>
+                    </div> -->
+                    <!-- 拖拽条 -->
+                    <div id="m-drag-handle" class="relative flex items-center justify-center w-[100px] py-[8px]">
+                        <div class="w-[32px] h-[4px] bg-black rounded-[4px]"></div>
+                    </div>
+                </div>
+                <!-- body: Sphere | Rectangle | Brush | Polygon -->
+                <div id="m-edit-panel" class="edit-panel hidden px-[16px] mt-[8px]">
+                    <!-- 二级菜单 -->
+                    <div class="flex justify-between h-[38px] border-b border-b-[#EBEBEB] px-[16px] mx-[-16px]">
+                        <!-- item -->
+                        <div disabled id="m-btn-set" data-disabled="true" class="btn-response flex flex-1 items-center justify-center h-[30px] px-[10px] border border-transparent rounded-[6px] data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none">
+                            <i class="mask-icon w-[14px] h-[14px] mr-[8px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-set.svg); mask-image: url(./static/icons-mobile/icon-set.svg);"></i>
+                            <span class="text-black">Set</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-none" data-disabled="true" class="btn-response flex flex-1 items-center justify-center h-[30px] px-[10px] border border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none rounded-[6px]">
+                            <i class="mask-icon w-[14px] h-[14px] mr-[8px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-none.svg); mask-image: url(./static/icons-mobile/icon-none.svg);"></i>
+                            <span class="text-black">None</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-invert" data-disabled="true" class="btn-response flex flex-1 items-center justify-center h-[30px] px-[10px] border border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none rounded-[6px]">
+                            <i class="mask-icon w-[14px] h-[14px] mr-[8px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-invert.svg); mask-image: url(./static/icons-mobile/icon-invert.svg);"></i>
+                            <span class="text-black">Invert</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-delete" data-disabled="true" class="btn-response flex flex-1 items-center justify-center h-[30px] px-[10px] border border-transparent data-[disabled=true]:opacity-50 data-[disabled=true]:pointer-events-none rounded-[6px]">
+                            <i class="mask-icon w-[14px] h-[14px] mr-[8px] bg-black" style="-webkit-mask-image: url(./static/icons-mobile/icon-delete.svg); mask-image: url(./static/icons-mobile/icon-delete.svg);"></i>
+                            <span class="text-black">Delete</span>
+                        </div>
+                    </div>
+                    <!-- 横向滑轮 height:65px -->
+                    <div id="m-sphere-radius-wheel" class="flex items-center h-0 px-[24px] mt-[16px] -mb-[7px] transition-height duration-300 overflow-hidden">
+                        <div class="rule-wrap box-border">
+                            <div class="center-pointer box-border"></div>
+                            <div id="rulerContainer" class="ruler-container box-border">
+                                <div id="rulerTrack" class="ruler-track box-border"></div>
+                            </div>
+                            <!-- 左右渐变遮罩 -->
+                            <div class="ruler-fade-left"></div>
+                            <div class="ruler-fade-right"></div>
+                        </div>
+                    </div>
+                    <!-- brush 笔刷大小调节器 -->
+                    <div id="m-brush-slider-wrap" class="flex items-center h-0 px-[16px] transition-height duration-300 overflow-hidden">
+                        <input id="m-brush-slider" type="range" min="0" max="40" step="0.01" value="0">
+                    </div>
+                    <!-- 一级菜单 -->
+                    <div class="flex items-center gap-2 mt-[16px]">
+                        <!-- item -->
+                        <div id="m-btn-sphere" data-edit-mode="Sphere" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon w-[24px] h-[24px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-sphere.svg); mask-image: url(./static/icons-mobile/icon-sphere.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Sphere</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-rectangle" data-edit-mode="Rectangle" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon w-[24px] h-[24px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-rectangle.svg); mask-image: url(./static/icons-mobile/icon-rectangle.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Rectangle</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-brush" data-edit-mode="Brush" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon w-[24px] h-[24px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-brush.svg); mask-image: url(./static/icons-mobile/icon-brush.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Brush</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-polygon" data-edit-mode="Polygon" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon w-[24px] h-[24px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-polygon.svg); mask-image: url(./static/icons-mobile/icon-polygon.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Polygon</span>
+                        </div>
+                    </div>
+                </div>
+    
+                <!-- body: Translate | Rotate | Scale -->
+                <div id="m-transform-panel" class="transform-panel hidden px-[24px] mt-[8px]">
+                    <!-- 二级菜单 -->
+                    <div id="m-transform-l2-panel" class="flex items-center gap-4 pointer-events-none">
+                        <!-- 二级菜单是直接将supersplat中的元素 append 进来 -->
+                    </div>
+                    <!-- 一级菜单 -->
+                    <div class="flex items-center gap-2 mt-[16px]">
+                        <!-- item -->
+                        <div id="m-btn-translate" data-transform-mode="Translate" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon shrink-0 w-[25px] h-[25px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-translate.svg); mask-image: url(./static/icons-mobile/icon-translate.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Translate</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-rotate" data-transform-mode="Rotate" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon shrink-0 w-[25px] h-[25px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-rotate.svg); mask-image: url(./static/icons-mobile/icon-rotate.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Rotate</span>
+                        </div>
+                        <!-- item -->
+                        <div id="m-btn-scale" data-transform-mode="Scale" class="flex flex-col flex-1 items-center justify-center h-[60px] rounded-[6px] px-[10px] text-black">
+                            <i class="mask-icon shrink-0 w-[25px] h-[25px] mb-1 bg-current" style="-webkit-mask-image: url(./static/icons-mobile/icon-scale.svg); mask-image: url(./static/icons-mobile/icon-scale.svg);"></i>
+                            <span class="text-current text-[14px] leading-none mt-[3px]">Scale</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- loading (PC、Mobile 共用) -->
+        <div id="save-loading" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-center items-center w-[132px] h-[132px] bg-black/50 rounded-xl z-10">
+            <div class="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div class="text-white mt-[16px]">Saving <span id="save-progress">0%</span></div>
+        </div>
+        
+        <!-- 滑块效果 -->
+        <script>
+            // 获取滑块元素
+            const slider = document.getElementById('slider-input-range');
+
+            // 初始化滑块值
+            updateSliderProgress(slider);
+
+            // 监听滑块值变化
+            slider.addEventListener('input', function() {
+                updateSliderProgress(this);
+            });
+
+            // 更新滑块进度条颜色
+            function updateSliderProgress(slider) {
+                const value = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+                slider.style.setProperty('--value', `${value}%`);
+            }
+        </script>
+    </body>
+</html>

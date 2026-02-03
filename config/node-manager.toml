@@ -1,0 +1,54 @@
+title = "Server Config"
+
+[servers]
+
+[servers.upload_folder]
+http = "/uploads"
+base_path = "/uploads"
+
+[servers.updata_url]
+http = "http://0.0.0.0:5100/"
+
+[servers.edit_url]
+http = "http://0.0.0.0:5100/"
+
+[servers.GPU_Manager_url]
+http = "http://0.0.0.0:5200/"
+
+[servers.GPU_Manager_Port]
+port = 5200
+
+[servers.database]
+# SQLite 数据库路径（当 DATABASE_URL 未设置时使用）
+path = "sql/tasksData.db"
+# PostgreSQL 数据库 URL（可选，优先级高于 path）
+# 格式: postgresql://user:password@host:port/database
+# 或: postgresql+psycopg://user:password@host:port/database
+# 也可以通过环境变量 GPU_DATABASE_URL 或 DATABASE_URL 设置
+url = "postgresql://postgres:Polyview%402026@postgres:5432/polyview_gpu"
+
+[servers.ServerMappings]
+# GPU服务器映射配置
+mappings = [
+    { ip_address = "192.168.1.191", port = 5201, mappedUrl = "/GPU1" },
+    { ip_address = "192.168.2.94", port = 5201, mappedUrl = "/GPU2" },
+    { ip_address = "192.168.6.21", port = 5201, mappedUrl = "/GPU3" },
+    { ip_address = "192.168.1.209", port = 5201, mappedUrl = "/GPU4" },
+    { ip_address = "192.168.1.191", port = 9301, mappedUrl = "/GPU5" },
+    { ip_address = "192.168.2.94", port = 5301, mappedUrl = "/GPU6" }
+]
+
+[Client_Service]
+
+[Client_Service.url]
+# http = "https://polyview.ngrok.app/"
+# 本地访问用 localhost，生产环境改为实际域名
+http = "http://localhost/"
+
+[cmd]
+[cmd.convert]
+command_Str_1 = "--colmap_executable=/COLMAP.bat"
+command_Str_2 = "--ffmpeg_executable=/ffmpeg.bat"
+
+colmap = "/bin/COLMAP/"
+openMVS = "/bin/openMVS/"

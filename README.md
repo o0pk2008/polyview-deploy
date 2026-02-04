@@ -97,8 +97,17 @@ docker login ghcr.io -u o0pk2008
 #输入Token
 ghp_xxxxxxxxxxxxxxxxxxxx
 
+#拉取镜像
+docker compose pull
+
 #启动服务
 docker compose up -d
+
+#停止整所有服务
+docker compose down
+
+#修改nginx使配置生效
+docker compose restart nginx
 ```
 
 ### 6. 访问

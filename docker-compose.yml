@@ -23,7 +23,7 @@ services:
   # Python 计算节点后端服务
   # -------------------
   node-manager:
-    image: ghcr.io/o0pk2008/node-manager:20260203-v2
+    image: ghcr.io/o0pk2008/node-manager:20260204-v1
     container_name: node-manager
     env_file:
       - .env

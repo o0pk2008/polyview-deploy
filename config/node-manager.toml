@@ -32,7 +32,7 @@ url = "postgresql://postgres:Polyview%402026@postgres:5432/polyview_gpu"
 mappings = [
     { ip_address = "192.168.1.191", port = 5201, mappedUrl = "/GPU1" },
     { ip_address = "192.168.2.94", port = 5201, mappedUrl = "/GPU2" },
-    { ip_address = "192.168.6.21", port = 5201, mappedUrl = "/GPU3" },
+    { ip_address = "192.168.6.195", port = 5201, mappedUrl = "/GPU3" },
     { ip_address = "192.168.1.209", port = 5201, mappedUrl = "/GPU4" },
     { ip_address = "192.168.1.191", port = 9301, mappedUrl = "/GPU5" },
     { ip_address = "192.168.2.94", port = 5301, mappedUrl = "/GPU6" }
